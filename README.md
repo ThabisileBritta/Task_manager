@@ -2,15 +2,14 @@
 
 A clean, minimal task management app with filtering, tags, and persistent storage — built with vanilla HTML, CSS, and JavaScript.
 
-**[Live Demo](https://your-demo-link.vercel.app)** · [Report Bug](https://github.com/yourusername/task-manager/issues)
+· [Report Bug](https://github.com/yourusername/task-manager/issues)
 
 ---
 
 ## Screenshot
 
-> _Add a screenshot here: press `Win + Shift + S` (Windows) or `Cmd + Shift + 4` (Mac), capture the app, and drag the image into this folder as `screenshot.png`_
+<img width="1236" height="601" alt="Screenshot 2026-04-03 215348" src="https://github.com/user-attachments/assets/8b2e77d6-4667-4a52-b6d0-6984eb55ffe2" />
 
-![Task Manager Screenshot](screenshot.png)
 
 ---
 
