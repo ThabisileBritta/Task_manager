@@ -1,0 +1,118 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.wrap { padding: 1.5rem 0; max-width: 600px; }
+.header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.5rem; }
+.header h2 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.header span { font-size: 13px; color: var(--color-text-secondary); }
+.input-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+.input-row input { flex: 1; }
+.filters { display: flex; gap: 6px; margin-bottom: 1rem; }
+.filter-btn { font-size: 12px; padding: 4px 12px; border-radius: 999px; border: 0.5px solid var(--color-border-secondary); background: transparent; cursor: pointer; color: var(--color-text-secondary); }
+.filter-btn.active { background: var(--color-background-info); color: var(--color-text-info); border-color: transparent; }
+.task-list { display: flex; flex-direction: column; gap: 6px; }
+.task { display: flex; align-items: center; gap: 10px; background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+.task.done { opacity: 0.5; }
+.task.done .task-text { text-decoration: line-through; }
+.check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--color-border-secondary); cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.check.checked { background: #1D9E75; border-color: #1D9E75; }
+.check.checked::after { content: ''; display: block; width: 5px; height: 8px; border: 1.5px solid white; border-top: none; border-left: none; transform: rotate(45deg) translate(-1px, -1px); }
+.task-text { flex: 1; font-size: 14px; color: var(--color-text-primary); }
+.task-tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 500; flex-shrink: 0; }
+.tag-work { background: #E6F1FB; color: #185FA5; }
+.tag-personal { background: #EEEDFE; color: #534AB7; }
+.tag-urgent { background: #FCEBEB; color: #A32D2D; }
+.del-btn { font-size: 16px; color: var(--color-text-tertiary); cursor: pointer; background: none; border: none; padding: 0 2px; line-height: 1; }
+.del-btn:hover { color: var(--color-text-danger); }
+.empty { text-align: center; padding: 2rem; font-size: 14px; color: var(--color-text-tertiary); }
+.tag-select { font-size: 13px; padding: 0 8px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); height: 36px; }
+</style>
+
+<div class="wrap">
+  <div class="header">
+    <h2>My tasks</h2>
+    <span id="counter">0 of 0 done</span>
+  </div>
+  <div class="input-row">
+    <input type="text" id="task-input" placeholder="Add a new task..." />
+    <select class="tag-select" id="tag-select">
+      <option value="work">Work</option>
+      <option value="personal">Personal</option>
+      <option value="urgent">Urgent</option>
+    </select>
+    <button onclick="addTask()">Add</button>
+  </div>
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" onclick="setFilter('active', this)">Active</button>
+    <button class="filter-btn" onclick="setFilter('done', this)">Done</button>
+  </div>
+  <div class="task-list" id="task-list"></div>
+</div>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem('ptasks') || '[]');
+let filter = 'all';
+
+if (tasks.length === 0) {
+  tasks = [
+    { id: 1, text: 'Set up GitHub repository', tag: 'work', done: true },
+    { id: 2, text: 'Write project README', tag: 'work', done: false },
+    { id: 3, text: 'Deploy to Vercel', tag: 'urgent', done: false },
+    { id: 4, text: 'Review pull requests', tag: 'personal', done: false },
+  ];
+  save();
+}
+
+function save() { localStorage.setItem('ptasks', JSON.stringify(tasks)); }
+
+function render() {
+  const list = document.getElementById('task-list');
+  const done = tasks.filter(t => t.done).length;
+  document.getElementById('counter').textContent = done + ' of ' + tasks.length + ' done';
+  const visible = tasks.filter(t => filter === 'all' ? true : filter === 'done' ? t.done : !t.done);
+  if (visible.length === 0) {
+    list.innerHTML = '<div class="empty">No tasks here</div>';
+    return;
+  }
+  list.innerHTML = visible.map(t => `
+    <div class="task ${t.done ? 'done' : ''}">
+      <div class="check ${t.done ? 'checked' : ''}" onclick="toggle(${t.id})"></div>
+      <span class="task-text">${t.text}</span>
+      <span class="task-tag tag-${t.tag}">${t.tag}</span>
+      <button class="del-btn" onclick="del(${t.id})">×</button>
+    </div>
+  `).join('');
+}
+
+function toggle(id) {
+  tasks = tasks.map(t => t.id === id ? {...t, done: !t.done} : t);
+  save(); render();
+}
+
+function del(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  save(); render();
+}
+
+function addTask() {
+  const inp = document.getElementById('task-input');
+  const tag = document.getElementById('tag-select').value;
+  const text = inp.value.trim();
+  if (!text) return;
+  tasks.push({ id: Date.now(), text, tag, done: false });
+  inp.value = '';
+  save(); render();
+}
+
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+document.getElementById('task-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+render();
+</script>
